@@ -91,6 +91,10 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Set local preview immediately
+        const localUrl = URL.createObjectURL(file);
+        setPreviewUrl(localUrl);
+
         setIsUploading(true);
         try {
             const uploadedFile = await storage.createFile(
@@ -99,11 +103,12 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                 file
             );
             setValue("thumbnail", uploadedFile.$id);
-            setPreviewUrl(storage.getFilePreview(APPWRITE_CONFIG.bucketId, uploadedFile.$id).toString());
+            // We keep the localUrl as the preview so it doesn't break even if permissions are tricky
             toast.success("Image uploaded successfully");
         } catch (error) {
             console.error("Upload error:", error);
             toast.error("Failed to upload image");
+            setPreviewUrl(null);
         } finally {
             setIsUploading(false);
         }

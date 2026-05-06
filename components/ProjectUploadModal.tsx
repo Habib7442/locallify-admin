@@ -46,7 +46,6 @@ export function ProjectUploadModal({ onProjectCreated }: { onProjectCreated: () 
         description: "",
         is_public: true,
         status: "ongoing",
-        category: "Web Development",
         tags: [],
     });
 
@@ -98,7 +97,6 @@ export function ProjectUploadModal({ onProjectCreated }: { onProjectCreated: () 
             description: "",
             is_public: true,
             status: "ongoing",
-            category: "Web Development",
             tags: [],
         });
         setTagsInput("");
@@ -180,24 +178,7 @@ export function ProjectUploadModal({ onProjectCreated }: { onProjectCreated: () 
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="category" className="text-zinc-500 font-bold uppercase text-xs tracking-widest">Category / Platform</Label>
-                        <Select 
-                            value={formData.category} 
-                            onValueChange={(val: any) => setFormData({...formData, category: val})}
-                        >
-                            <SelectTrigger className="h-12 bg-zinc-50 border-zinc-200 rounded-xl font-bold">
-                                <SelectValue placeholder="Select Category" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                                <SelectItem value="Web Development">Web Development</SelectItem>
-                                <SelectItem value="UI/UX Design">UI/UX Design</SelectItem>
-                                <SelectItem value="Mobile App">Mobile App</SelectItem>
-                                <SelectItem value="Brand Identity">Brand Identity</SelectItem>
-                                <SelectItem value="Digital Marketing">Digital Marketing</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+
 
                     <div className="space-y-2">
                         <Label htmlFor="live_url" className="text-zinc-500 font-bold uppercase text-xs tracking-widest">Live URL</Label>
