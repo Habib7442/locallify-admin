@@ -32,6 +32,8 @@ import {
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { createProjectAction, updateProjectAction } from "@/lib/server/actions";
+import { storage, ID, APPWRITE_CONFIG } from "@/lib/appwrite";
+import { ImageAdd01Icon } from "@hugeicons/core-free-icons";
 
 interface ProjectDialogProps {
     open: boolean;
@@ -40,6 +42,9 @@ interface ProjectDialogProps {
 }
 
 export default function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProps) {
+    const [isUploading, setIsUploading] = React.useState(false);
+    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+
     const { register, handleSubmit, reset, setValue, watch, formState: { isSubmitting } } = useForm<Partial<Project>>({
         defaultValues: {
             title: "",
@@ -63,6 +68,11 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                 is_public: project.is_public,
                 thumbnail: project.thumbnail,
             });
+            if (project.thumbnail && project.thumbnail !== "default") {
+                setPreviewUrl(storage.getFilePreview(APPWRITE_CONFIG.bucketId, project.thumbnail).toString());
+            } else {
+                setPreviewUrl(null);
+            }
         } else {
             reset({
                 title: "",
@@ -73,8 +83,31 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                 is_public: true,
                 thumbnail: "default",
             });
+            setPreviewUrl(null);
         }
     }, [project, reset]);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        try {
+            const uploadedFile = await storage.createFile(
+                APPWRITE_CONFIG.bucketId,
+                ID.unique(),
+                file
+            );
+            setValue("thumbnail", uploadedFile.$id);
+            setPreviewUrl(storage.getFilePreview(APPWRITE_CONFIG.bucketId, uploadedFile.$id).toString());
+            toast.success("Image uploaded successfully");
+        } catch (error) {
+            console.error("Upload error:", error);
+            toast.error("Failed to upload image");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     const onSubmit = async (data: Partial<Project>) => {
         try {
@@ -111,6 +144,45 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                     </div>
 
                     <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto">
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Project Thumbnail</Label>
+                            <div 
+                                onClick={() => document.getElementById('image-upload')?.click()}
+                                className="group relative w-full h-48 bg-zinc-50 border-2 border-dashed border-zinc-100 rounded-[32px] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-blue-200 hover:bg-blue-50/30 transition-all duration-500"
+                            >
+                                {previewUrl ? (
+                                    <>
+                                        <img src={previewUrl} alt="Preview" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                            <div className="bg-white/20 p-4 rounded-2xl border border-white/30">
+                                                <HugeiconsIcon icon={ImageAdd01Icon} className="text-white" size={24} />
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center gap-4 text-zinc-400 group-hover:text-blue-500 transition-colors">
+                                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:shadow-blue-200/50 transition-all">
+                                            {isUploading ? (
+                                                <HugeiconsIcon icon={Loading01Icon} className="animate-spin text-blue-500" size={24} />
+                                            ) : (
+                                                <HugeiconsIcon icon={ImageAdd01Icon} size={24} />
+                                            )}
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-xs font-black uppercase tracking-widest">Click to upload image</p>
+                                            <p className="text-[10px] font-bold opacity-60 mt-1">Recommended: 1200x800px</p>
+                                        </div>
+                                    </div>
+                                )}
+                                <input 
+                                    id="image-upload"
+                                    type="file" 
+                                    accept="image/*"
+                                    className="hidden" 
+                                    onChange={handleImageUpload}
+                                />
+                            </div>
+                        </div>
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Project Title</Label>
                             <Input 
