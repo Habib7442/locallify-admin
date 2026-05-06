@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export default async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const session = request.cookies.get("locallify-session");
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") || 

@@ -4,8 +4,9 @@ import { ID } from "node-appwrite";
 import { cookies } from "next/headers";
 import { createAdminClient, createSessionClient } from "./appwrite";
 import { redirect } from "next/navigation";
-import { serverReviewService } from "./services";
+import { serverReviewService, serverProjectService } from "./services";
 import { revalidatePath } from "next/cache";
+import { Project } from "@/lib/types";
 
 export async function loginAction(formData: FormData) {
   const email = formData.get("email") as string;
@@ -104,5 +105,55 @@ export async function deleteReviewAction(reviewId: string) {
   } catch (error) {
     console.error("Delete review error:", error);
     return { success: false, error: "Failed to delete review" };
+  }
+}
+
+export async function createProjectAction(data: Partial<Project>) {
+  try {
+    const session = await createSessionClient();
+    if (!session) throw new Error("Unauthorized");
+
+    // Safeguard: Strip non-existent attributes that might be sent from cached client code
+    const cleanData = { ...data };
+    delete (cleanData as any).category;
+
+    await serverProjectService.createProject(cleanData);
+    revalidatePath("/projects");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Create project error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateProjectAction(projectId: string, data: Partial<Project>) {
+  try {
+    const session = await createSessionClient();
+    if (!session) throw new Error("Unauthorized");
+
+    // Safeguard: Strip non-existent attributes that might be sent from cached client code
+    const cleanData = { ...data };
+    delete (cleanData as any).category;
+
+    await serverProjectService.updateProject(projectId, cleanData);
+    revalidatePath("/projects");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Update project error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function deleteProjectAction(projectId: string) {
+  try {
+    const session = await createSessionClient();
+    if (!session) throw new Error("Unauthorized");
+
+    await serverProjectService.deleteProject(projectId);
+    revalidatePath("/projects");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete project error:", error);
+    return { success: false, error: error.message };
   }
 }

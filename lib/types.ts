@@ -8,7 +8,6 @@ export interface Project {
     description: string;
     is_public: boolean;
     status: 'ongoing' | 'completed';
-    category: string;
     tags: string[];
 }
 
