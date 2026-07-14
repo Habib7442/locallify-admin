@@ -21,7 +21,7 @@ import ProjectDialog from "./ProjectDialog";
 import { deleteProjectAction } from "@/lib/server/actions";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
-import { storage, APPWRITE_CONFIG } from "@/lib/appwrite";
+import { urlFor } from "@/lib/sanity";
 
 interface ProjectsGridProps {
     initialProjects: Project[];
@@ -123,11 +123,11 @@ export default function ProjectsGrid({ initialProjects }: ProjectsGridProps) {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-16 h-16 bg-zinc-50 rounded-[24px] flex items-center justify-center text-zinc-400 font-black group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors duration-500 shadow-inner overflow-hidden">
                                                     {project.thumbnail && project.thumbnail !== "default" ? (
-                                                        <img 
-                                                            src={storage.getFilePreview(APPWRITE_CONFIG.bucketId, project.thumbnail).toString()} 
-                                                            alt={project.title}
-                                                            className="w-full h-full object-cover"
-                                                        />
+                                                         <img 
+                                                             src={urlFor(project.thumbnail)} 
+                                                             alt={project.title}
+                                                             className="w-full h-full object-cover"
+                                                         />
                                                     ) : (
                                                         <HugeiconsIcon icon={project.tags?.[0]?.toLowerCase().includes('web') || project.tags?.[0]?.toLowerCase().includes('app') ? GlobalIcon : WorkHistoryIcon} size={32} />
                                                     )}

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { authService } from "@/lib/appwrite-service";
+import { authService } from "@/lib/sanity-service";
 import { loginAction } from "@/lib/server/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

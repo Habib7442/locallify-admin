@@ -8,7 +8,7 @@ export default async function ReviewsPage() {
     let reviews: Review[] = [];
     try {
         const data = await serverReviewService.getAllReviews();
-        // Convert node-appwrite documents to our Review type
+        // Convert Sanity documents to our Review type
         reviews = data.map((doc: any) => ({
             ...doc,
             $id: doc.$id,

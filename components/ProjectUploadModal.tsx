@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { projectService } from "@/lib/appwrite-service";
+import { projectService } from "@/lib/sanity-service";
 import { CreateProjectData } from "@/lib/types";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { 
@@ -206,7 +206,7 @@ export function ProjectUploadModal({ onProjectCreated }: { onProjectCreated: () 
                         <Label htmlFor="tags" className="text-zinc-500 font-bold uppercase text-xs tracking-widest">Tags (Comma separated)</Label>
                         <Input 
                             id="tags"
-                            placeholder="Next.js, Tailwind, Appwrite"
+                            placeholder="Next.js, Tailwind, Sanity"
                             value={tagsInput}
                             onChange={(e) => setTagsInput(e.target.value)}
                             className="h-12 bg-zinc-50 border-zinc-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 font-bold"

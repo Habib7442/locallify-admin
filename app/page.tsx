@@ -14,7 +14,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { serverProjectService, serverProfilesService } from "@/lib/server/services";
-import { getLoggedInUser } from "@/lib/server/appwrite";
+import { getLoggedInUser } from "@/lib/server/sanity";
 
 export default async function Home() {
   // Fetch data on the server
