@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Locallify Elite | Admin Dashboard",
-  description: "Manage your local digital presence, leads, and custom websites with Locallify Elite Admin.",
+  description: "Manage your local digital presence, and custom websites with Locallify Elite Admin.",
 };
 
 export default function RootLayout({
