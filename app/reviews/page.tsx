@@ -1,5 +1,5 @@
 import React from "react";
-import Sidebar from "@/components/Sidebar";
+import DashboardShell from "@/components/DashboardShell";
 import { Review } from "@/lib/types";
 import { serverReviewService } from "@/lib/server/services";
 import ReviewsGrid from "@/components/ReviewsGrid";
@@ -20,12 +20,8 @@ export default async function ReviewsPage() {
     }
 
     return (
-        <div className="flex min-h-screen bg-zinc-50">
-            <Sidebar />
-            
-            <main className="flex-1 overflow-y-auto px-8 py-10">
-                <ReviewsGrid initialReviews={reviews} />
-            </main>
-        </div>
+        <DashboardShell>
+            <ReviewsGrid initialReviews={reviews} />
+        </DashboardShell>
     );
 }

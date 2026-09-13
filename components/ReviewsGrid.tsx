@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Review } from "@/lib/types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { 
+import {
     StarIcon,
     Cancel01Icon,
     Delete02Icon,
@@ -17,8 +14,9 @@ import {
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { toggleReviewAction, deleteReviewAction } from "@/lib/server/actions";
+import { FilterTabs } from "@/components/ui/filter-tabs";
+import { StatusPill } from "@/components/ui/status-pill";
 
 interface ReviewsGridProps {
     initialReviews: Review[];
@@ -26,7 +24,14 @@ interface ReviewsGridProps {
 
 export default function ReviewsGrid({ initialReviews }: ReviewsGridProps) {
     const [searchQuery, setSearchQuery] = useState("");
+    const [tab, setTab] = useState("all");
     const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
+
+    const tabs = [
+        { id: "all", label: "All Reviews", count: initialReviews.length },
+        { id: "published", label: "Published", count: initialReviews.filter(r => r.is_published).length },
+        { id: "pending", label: "Pending", count: initialReviews.filter(r => !r.is_published).length },
+    ];
 
     const handleTogglePublish = async (id: string, currentStatus: boolean) => {
         setIsActionLoading(id);
@@ -61,122 +66,127 @@ export default function ReviewsGrid({ initialReviews }: ReviewsGridProps) {
         }
     };
 
-    const filteredReviews = initialReviews.filter(r => 
-        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.review.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredReviews = useMemo(() => {
+        return initialReviews.filter(r => {
+            const matchesSearch =
+                r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                r.review.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesTab =
+                tab === "all" ? true :
+                tab === "published" ? r.is_published :
+                !r.is_published;
+            return matchesSearch && matchesTab;
+        });
+    }, [initialReviews, searchQuery, tab]);
 
     return (
         <>
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                 <div>
-                    <h1 className="text-4xl font-black text-zinc-900 tracking-tight italic uppercase">Customer <span className="text-[#0066FF]">Reviews</span></h1>
-                    <p className="text-zinc-500 font-bold mt-1 uppercase text-xs tracking-widest">
-                        Manage testimonials & public feedback
-                    </p>
+                    <h1 className="text-3xl font-black text-zinc-900 tracking-tight">Customer Reviews</h1>
+                    <p className="text-sm font-medium text-zinc-400 mt-1">Manage testimonials & public feedback</p>
                 </div>
-                
-                <div className="flex items-center gap-4">
-                    <div className="relative group">
-                        <HugeiconsIcon icon={Search01Icon} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                        <input 
-                            type="text"
-                            placeholder="Search reviews..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="h-12 w-full md:w-80 bg-white border border-zinc-200 rounded-2xl pl-12 pr-4 font-bold text-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm"
-                        />
-                    </div>
+
+                <div className="relative">
+                    <HugeiconsIcon icon={Search01Icon} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Search reviews..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="h-11 w-full md:w-72 bg-zinc-50 border border-zinc-100 rounded-2xl pl-11 pr-4 font-medium text-sm focus:ring-4 focus:ring-[#0066FF]/10 focus:border-[#0066FF] outline-none transition-all"
+                    />
                 </div>
             </div>
 
-            {filteredReviews.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <AnimatePresence mode="popLayout">
-                        {filteredReviews.map((item) => (
-                            <motion.div
-                                key={item.$id}
-                                layout
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                            >
-                                <Card className="border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-[32px] overflow-hidden group bg-white border-b-4 border-transparent hover:border-[#0066FF]">
-                                    <CardContent className="p-8">
-                                        <div className="flex items-start justify-between mb-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-zinc-100 rounded-2xl flex items-center justify-center text-zinc-400 font-black">
-                                                    <HugeiconsIcon icon={UserIcon} size={24} />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-black text-zinc-900 leading-tight">{item.name}</h3>
-                                                    <div className="flex gap-0.5 mt-1">
-                                                        {[...Array(5)].map((_, i) => (
-                                                            <HugeiconsIcon 
-                                                                key={i} 
-                                                                icon={StarIcon} 
-                                                                size={12} 
-                                                                className={i < item.rating ? "text-orange-400 fill-orange-400" : "text-zinc-200"} 
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <Badge className={cn(
-                                                "font-black uppercase text-[10px] tracking-wider px-3 py-1 rounded-full",
-                                                item.is_published ? "bg-emerald-50 text-emerald-600" : "bg-zinc-100 text-zinc-500"
-                                            )}>
-                                                {item.is_published ? "Published" : "Pending"}
-                                            </Badge>
-                                        </div>
-
-                                        <div className="relative mb-8">
-                                            <HugeiconsIcon icon={Message01Icon} className="absolute -top-2 -left-2 text-zinc-50 opacity-50 scale-150" size={40} />
-                                            <p className="text-zinc-600 text-sm font-medium italic relative z-10 leading-relaxed">
-                                                "{item.review}"
-                                            </p>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 pt-6 border-t border-zinc-50">
-                                            <Button 
-                                                onClick={() => handleTogglePublish(item.$id, item.is_published)}
-                                                disabled={isActionLoading === item.$id}
-                                                className={cn(
-                                                    "flex-1 font-black text-[10px] uppercase tracking-widest h-10 rounded-xl transition-all",
-                                                    item.is_published 
-                                                        ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200" 
-                                                        : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
-                                                )}
-                                            >
-                                                <HugeiconsIcon icon={item.is_published ? Cancel01Icon : Tick01Icon} size={16} className="mr-2" />
-                                                {item.is_published ? "Unpublish" : "Approve"}
-                                            </Button>
-                                            <Button 
-                                                variant="secondary"
-                                                disabled={isActionLoading === item.$id}
-                                                onClick={() => handleDelete(item.$id)}
-                                                className="w-10 h-10 p-0 bg-red-50 text-red-500 hover:bg-red-500 hover:text-white rounded-xl border-none transition-all"
-                                            >
-                                                <HugeiconsIcon icon={Delete02Icon} size={18} />
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+            <div className="rounded-[32px] bg-white ring-1 ring-zinc-100 p-2">
+                <div className="px-6 pt-4">
+                    <FilterTabs tabs={tabs} active={tab} onChange={setTab} />
                 </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center h-[50vh] bg-white rounded-[40px] border-2 border-dashed border-zinc-100 p-12 text-center">
-                    <div className="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mb-6">
-                        <HugeiconsIcon icon={Message01Icon} size={40} className="text-zinc-300" />
+
+                {filteredReviews.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-50">
+                            <HugeiconsIcon icon={Message01Icon} className="text-zinc-300" size={28} />
+                        </div>
+                        <p className="text-sm font-semibold text-zinc-400">No reviews match this view</p>
                     </div>
-                    <h3 className="text-2xl font-black text-zinc-900 mb-2">No reviews found</h3>
-                    <p className="text-zinc-500 font-bold max-w-sm">
-                        Waiting for your customers to share their experience.
-                    </p>
-                </div>
-            )}
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[760px] border-collapse">
+                            <thead>
+                                <tr className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400">
+                                    <th className="px-6 py-3 font-bold">Reviewer</th>
+                                    <th className="px-6 py-3 font-bold">Rating</th>
+                                    <th className="px-6 py-3 font-bold">Review</th>
+                                    <th className="px-6 py-3 font-bold">Status</th>
+                                    <th className="px-6 py-3 font-bold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredReviews.map((item) => (
+                                    <tr key={item.$id} className="border-t border-zinc-50 hover:bg-zinc-50/60 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400">
+                                                    <HugeiconsIcon icon={UserIcon} size={18} />
+                                                </div>
+                                                <span className="text-sm font-bold text-zinc-900">{item.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex gap-0.5">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <HugeiconsIcon
+                                                        key={i}
+                                                        icon={StarIcon}
+                                                        size={13}
+                                                        className={i < item.rating ? "text-amber-400 fill-amber-400" : "text-zinc-200"}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 max-w-xs">
+                                            <p className="text-sm font-medium text-zinc-500 line-clamp-2 italic">"{item.review}"</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <StatusPill
+                                                label={item.is_published ? "Published" : "Pending"}
+                                                tone={item.is_published ? "success" : "warning"}
+                                            />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => handleTogglePublish(item.$id, item.is_published)}
+                                                    disabled={isActionLoading === item.$id}
+                                                    className={cn(
+                                                        "flex items-center gap-1.5 px-3 h-9 rounded-xl text-xs font-bold transition-all disabled:opacity-50",
+                                                        item.is_published
+                                                            ? "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                                                            : "bg-emerald-500 text-white hover:bg-emerald-600"
+                                                    )}
+                                                >
+                                                    <HugeiconsIcon icon={item.is_published ? Cancel01Icon : Tick01Icon} size={13} />
+                                                    {item.is_published ? "Unpublish" : "Approve"}
+                                                </button>
+                                                <button
+                                                    disabled={isActionLoading === item.$id}
+                                                    onClick={() => handleDelete(item.$id)}
+                                                    className="flex h-9 w-9 items-center justify-center rounded-xl text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+                                                    title="Delete"
+                                                >
+                                                    <HugeiconsIcon icon={Delete02Icon} size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
         </>
     );
 }

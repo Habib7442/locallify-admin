@@ -1,13 +1,13 @@
 import { client, writeClient } from "../sanity";
 import { getLoggedInUser } from "./sanity";
-import { Project, Review } from "../types";
+import { Project, Review, Blog } from "../types";
 
 export const serverProjectService = {
   async getAllProjects() {
     const user = await getLoggedInUser();
     if (!user) throw new Error("Not authenticated");
 
-    const response = await client.fetch<any[]>(`*[_type == "project"] | order(_createdAt desc)`);
+    const response = await client.fetch<any[]>(`*[_type == "project"] | order(displayOrder asc, _createdAt desc)`);
     return response.map(doc => ({
       ...doc,
       $id: doc._id,
@@ -188,5 +188,86 @@ export const serverReviewService = {
       $createdAt: doc._createdAt,
       $updatedAt: doc._updatedAt,
     })) as unknown as Review[];
+  },
+};
+
+export const serverBlogService = {
+  async getAllBlogs() {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const response = await client.fetch<any[]>(`*[_type == "blog"] | order(_createdAt desc)`);
+    return response.map(doc => ({
+      ...doc,
+      $id: doc._id,
+      $createdAt: doc._createdAt,
+      $updatedAt: doc._updatedAt,
+    })) as unknown as Blog[];
+  },
+
+  async createBlog(data: Partial<Blog>) {
+    const payload = {
+      _type: "blog",
+      title: data.title,
+      slug: data.slug || "",
+      excerpt: data.excerpt || "",
+      content: data.content || "",
+      coverImage: data.coverImage || "default",
+      author: data.author || "",
+      authorImage: data.authorImage || "",
+      category: data.category || "",
+      tags: data.tags || [],
+      status: data.status || "draft",
+      featured: data.featured || false,
+      readingTime: data.readingTime || 1,
+      publishedAt: data.publishedAt || "",
+
+      // SEO Metadata
+      metaTitle: data.metaTitle || "",
+      metaDescription: data.metaDescription || "",
+      metaKeywords: data.metaKeywords || [],
+      canonicalUrl: data.canonicalUrl || "",
+      robotsRule: data.robotsRule || "",
+      ogImage: data.ogImage || "",
+    };
+
+    const response = await writeClient.create(payload);
+    return {
+      ...response,
+      $id: response._id,
+      $createdAt: response._createdAt,
+      $updatedAt: response._updatedAt,
+    };
+  },
+
+  async updateBlog(blogId: string, data: Partial<Blog>) {
+    const payload: any = {};
+    const keys = [
+      "title", "slug", "excerpt", "content", "coverImage", "author", "authorImage",
+      "category", "tags", "status", "featured", "readingTime", "publishedAt",
+      "metaTitle", "metaDescription", "metaKeywords", "canonicalUrl", "robotsRule", "ogImage",
+    ];
+
+    keys.forEach(key => {
+      if ((data as any)[key] !== undefined) {
+        payload[key] = (data as any)[key];
+      }
+    });
+
+    const response = await writeClient
+      .patch(blogId)
+      .set(payload)
+      .commit();
+
+    return {
+      ...response,
+      $id: response._id,
+      $createdAt: response._createdAt,
+      $updatedAt: response._updatedAt,
+    };
+  },
+
+  async deleteBlog(blogId: string) {
+    return await writeClient.delete(blogId);
   },
 };

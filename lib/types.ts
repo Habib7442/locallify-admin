@@ -170,3 +170,34 @@ export interface Review {
     rating: number;
     is_published: boolean;
 }
+
+export interface Blog {
+    $id: string;
+    $createdAt: string;
+    $updatedAt: string;
+
+    // Basic Information
+    title: string;
+    slug: string;
+    excerpt: string;
+    content: string;
+    coverImage: string;
+    author: string;
+    authorImage?: string;
+    category?: string;
+    tags: string[];
+    status: 'draft' | 'published';
+    featured?: boolean;
+    readingTime?: number;
+    publishedAt?: string;
+
+    // SEO Metadata
+    metaTitle?: string;
+    metaDescription?: string;
+    metaKeywords?: string[];
+    canonicalUrl?: string;
+    robotsRule?: string;
+    ogImage?: string;
+}
+
+export type CreateBlogData = Omit<Blog, '$id' | '$createdAt' | '$updatedAt' | 'coverImage'>;

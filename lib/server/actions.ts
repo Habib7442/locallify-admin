@@ -10,8 +10,8 @@ import {
   hashPassword, 
   verifyPassword 
 } from "./sanity";
-import { serverReviewService, serverProjectService } from "./services";
-import { Project } from "@/lib/types";
+import { serverReviewService, serverProjectService, serverBlogService } from "./services";
+import { Project, Blog } from "@/lib/types";
 
 export async function getCurrentUserAction() {
   return await getLoggedInUser();
@@ -223,5 +223,78 @@ export async function deleteProjectAction(projectId: string) {
   } catch (error: any) {
     console.error("Delete project error:", error);
     return { success: false, error: error.message || "Failed to delete project" };
+  }
+}
+
+export async function getAllBlogsAction() {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+    const blogs = await serverBlogService.getAllBlogs();
+    return { success: true, blogs };
+  } catch (error: any) {
+    return { success: false, error: error.message || "Failed to fetch blogs" };
+  }
+}
+
+export async function createBlogAction(data: Partial<Blog>) {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const blog = await serverBlogService.createBlog(data);
+    revalidatePath("/blogs");
+    return { success: true, blog };
+  } catch (error: any) {
+    console.error("Create blog error:", error);
+    return { success: false, error: error.message || "Failed to create blog" };
+  }
+}
+
+export async function updateBlogAction(blogId: string, data: Partial<Blog>) {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const blog = await serverBlogService.updateBlog(blogId, data);
+    revalidatePath("/blogs");
+    return { success: true, blog };
+  } catch (error: any) {
+    console.error("Update blog error:", error);
+    return { success: false, error: error.message || "Failed to update blog" };
+  }
+}
+
+export async function deleteBlogAction(blogId: string) {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+
+    await serverBlogService.deleteBlog(blogId);
+    revalidatePath("/blogs");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete blog error:", error);
+    return { success: false, error: error.message || "Failed to delete blog" };
+  }
+}
+
+export async function toggleBlogStatusAction(blogId: string, currentStatus: "draft" | "published") {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const nextStatus = currentStatus === "published" ? "draft" : "published";
+    const payload: Partial<Blog> = { status: nextStatus };
+    if (nextStatus === "published") {
+      payload.publishedAt = new Date().toISOString();
+    }
+
+    await serverBlogService.updateBlog(blogId, payload);
+    revalidatePath("/blogs");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Toggle blog status error:", error);
+    return { success: false, error: error.message || "Failed to update blog status" };
   }
 }
