@@ -105,6 +105,8 @@ export async function signupAction(formData: FormData) {
 
     // Create the admin document in Sanity
     const newUser = {
+      // Dotted ID: only readable with a token, even in a public dataset.
+      _id: `admins.${crypto.randomUUID()}`,
       _type: "admin",
       name,
       email,

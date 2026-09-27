@@ -1,7 +1,8 @@
 import { createClient } from "next-sanity";
 import { createImageUrlBuilder } from "@sanity/image-url";
 
-// The dataset is private (it holds leads and admin accounts), so reads need a
+// Leads and admin accounts live under dotted IDs ("leads.*", "admins.*"),
+// which Sanity only serves to authenticated requests, so reads need a
 // token. Server-only env var: undefined in the browser, where only urlFor()
 // runs. `perspective: "published"` keeps an authenticated client from
 // returning drafts, matching what the unauthenticated client used to see.
