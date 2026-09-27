@@ -139,6 +139,42 @@ export async function signupAction(formData: FormData) {
   }
 }
 
+export async function changePasswordAction(formData: FormData) {
+  try {
+    const session = await getLoggedInUser();
+    if (!session) throw new Error("Unauthorized");
+
+    const currentPassword = formData.get("currentPassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (!newPassword || newPassword.length < 12) {
+      return { success: false, error: "New password must be at least 12 characters" };
+    }
+    if (newPassword !== confirmPassword) {
+      return { success: false, error: "New passwords don't match" };
+    }
+    if (newPassword === currentPassword) {
+      return { success: false, error: "Choose a password different from the current one" };
+    }
+
+    // Look the account up by email: sessions issued before the move to
+    // "admins.*" IDs still carry the old document ID.
+    const user = await client.fetch(`*[_type == "admin" && email == $email][0]{ _id, passwordHash }`, {
+      email: session.email,
+    });
+    if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+      return { success: false, error: "Current password is incorrect" };
+    }
+
+    await writeClient.patch(user._id).set({ passwordHash: hashPassword(newPassword) }).commit();
+    return { success: true };
+  } catch (error: any) {
+    console.error("Change password error:", error);
+    return { success: false, error: error.message || "Failed to change password" };
+  }
+}
+
 export async function logoutAction() {
   const cookieStore = await cookies();
   cookieStore.delete("locallify-session");

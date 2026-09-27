@@ -13,7 +13,8 @@ import {
   StarIcon,
   UserIcon,
   QuillWrite01Icon,
-  InboxIcon
+  InboxIcon,
+  LockPasswordIcon
 } from "@hugeicons/core-free-icons";
 
 const menuItems = [
@@ -22,6 +23,7 @@ const menuItems = [
   { icon: StarIcon, label: "Reviews", href: "/reviews" },
   { icon: WorkHistoryIcon, label: "Projects", href: "/projects" },
   { icon: QuillWrite01Icon, label: "Blogs", href: "/blogs" },
+  { icon: LockPasswordIcon, label: "Account", href: "/account" },
 ];
 
 import { logoutAction } from "@/lib/server/actions";
