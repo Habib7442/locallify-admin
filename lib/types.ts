@@ -45,6 +45,8 @@ export interface Testimonial {
     photo?: string;
     rating: number;
     testimonial: string;
+    /** Public source (e.g. the Google review). The site's "Verified" badge shows only when set. */
+    sourceUrl?: string;
 }
 
 export interface FAQItem {
@@ -169,6 +171,25 @@ export interface Review {
     review: string;
     rating: number;
     is_published: boolean;
+    /** Public source (e.g. the Google review). The site's "Verified" badge shows only when set. */
+    sourceUrl?: string;
+}
+
+export type LeadStatus = "new" | "contacted" | "archived";
+
+export interface Lead {
+    $id: string;
+    $createdAt: string;
+    name: string;
+    email: string;
+    company?: string;
+    projectType?: string;
+    budget?: string;
+    description?: string;
+    status: LeadStatus;
+    /** Industry landing-page leads: e.g. "industry:dental-website-design". */
+    source?: string;
+    extra?: string;
 }
 
 export interface Blog {

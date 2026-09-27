@@ -12,11 +12,13 @@ import {
   Logout01Icon,
   StarIcon,
   UserIcon,
-  QuillWrite01Icon
+  QuillWrite01Icon,
+  InboxIcon
 } from "@hugeicons/core-free-icons";
 
 const menuItems = [
   { icon: DashboardCircleIcon, label: "Dashboard", href: "/" },
+  { icon: InboxIcon, label: "Leads", href: "/leads" },
   { icon: StarIcon, label: "Reviews", href: "/reviews" },
   { icon: WorkHistoryIcon, label: "Projects", href: "/projects" },
   { icon: QuillWrite01Icon, label: "Blogs", href: "/blogs" },

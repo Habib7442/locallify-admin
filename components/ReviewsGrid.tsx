@@ -14,7 +14,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { toggleReviewAction, deleteReviewAction } from "@/lib/server/actions";
+import { toggleReviewAction, deleteReviewAction, updateReviewSourceAction } from "@/lib/server/actions";
 import { FilterTabs } from "@/components/ui/filter-tabs";
 import { StatusPill } from "@/components/ui/status-pill";
 
@@ -113,12 +113,13 @@ export default function ReviewsGrid({ initialReviews }: ReviewsGridProps) {
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[760px] border-collapse">
+                        <table className="w-full min-w-[980px] border-collapse">
                             <thead>
                                 <tr className="text-left text-xs font-bold uppercase tracking-wider text-zinc-400">
                                     <th className="px-6 py-3 font-bold">Reviewer</th>
                                     <th className="px-6 py-3 font-bold">Rating</th>
                                     <th className="px-6 py-3 font-bold">Review</th>
+                                    <th className="px-6 py-3 font-bold">Source</th>
                                     <th className="px-6 py-3 font-bold">Status</th>
                                     <th className="px-6 py-3 font-bold text-right">Actions</th>
                                 </tr>
@@ -148,6 +149,9 @@ export default function ReviewsGrid({ initialReviews }: ReviewsGridProps) {
                                         </td>
                                         <td className="px-6 py-4 max-w-xs">
                                             <p className="text-sm font-medium text-zinc-500 line-clamp-2 italic">"{item.review}"</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <SourceUrlCell reviewId={item.$id} initialValue={item.sourceUrl || ""} />
                                         </td>
                                         <td className="px-6 py-4">
                                             <StatusPill
@@ -188,5 +192,43 @@ export default function ReviewsGrid({ initialReviews }: ReviewsGridProps) {
                 )}
             </div>
         </>
+    );
+}
+
+/**
+ * Link to the public original (e.g. the Google review). The website shows a
+ * "Verified" badge only for reviews that have one. Saves on Enter or blur.
+ */
+function SourceUrlCell({ reviewId, initialValue }: { reviewId: string; initialValue: string }) {
+    const [value, setValue] = useState(initialValue);
+    const [saved, setSaved] = useState(initialValue);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const save = async () => {
+        if (value.trim() === saved) return;
+        setIsSaving(true);
+        const result = await updateReviewSourceAction(reviewId, value);
+        setIsSaving(false);
+        if (result.success) {
+            setSaved(value.trim());
+            toast.success(value.trim() ? "Source saved — review will show as Verified" : "Source removed");
+        } else {
+            toast.error(result.error || "Failed to save source");
+            setValue(saved);
+        }
+    };
+
+    return (
+        <input
+            type="url"
+            value={value}
+            placeholder="https://g.co/… (optional)"
+            aria-label="Public source URL for this review"
+            disabled={isSaving}
+            onChange={(e) => setValue(e.target.value)}
+            onBlur={save}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            className="h-9 w-56 bg-zinc-50 border border-zinc-100 rounded-xl px-3 text-xs font-medium focus:ring-4 focus:ring-[#0066FF]/10 focus:border-[#0066FF] outline-none transition-all disabled:opacity-50"
+        />
     );
 }

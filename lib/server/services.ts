@@ -1,6 +1,6 @@
 import { client, writeClient } from "../sanity";
 import { getLoggedInUser } from "./sanity";
-import { Project, Review, Blog } from "../types";
+import { Project, Review, Blog, Lead } from "../types";
 
 export const serverProjectService = {
   async getAllProjects() {
@@ -188,6 +188,23 @@ export const serverReviewService = {
       $createdAt: doc._createdAt,
       $updatedAt: doc._updatedAt,
     })) as unknown as Review[];
+  },
+};
+
+export const serverLeadService = {
+  async getAllLeads() {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Not authenticated");
+
+    const response = await client.fetch<any[]>(
+      `*[_type == "lead"] | order(_createdAt desc){ _id, _createdAt, name, email, company, projectType, budget, description, status, source, extra }`
+    );
+    return response.map(doc => ({
+      ...doc,
+      $id: doc._id,
+      $createdAt: doc._createdAt,
+      status: doc.status || "new",
+    })) as unknown as Lead[];
   },
 };
 

@@ -135,12 +135,7 @@ export default function LoginPage() {
                             )}
                         </Button>
                     </form>
-                    
-                    <div className="mt-6 text-center">
-                        <p className="text-zinc-500 text-xs font-bold uppercase tracking-widest">
-                            New here? <Link href="/signup" className="text-[#0066FF] hover:underline">Create Account</Link>
-                        </p>
-                    </div>
+
                 </div>
 
                 <div className="mt-8 flex items-center justify-center gap-2 text-zinc-600 font-bold uppercase text-[9px] tracking-widest">

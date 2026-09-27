@@ -1,11 +1,17 @@
 import { createClient } from "next-sanity";
 import { createImageUrlBuilder } from "@sanity/image-url";
 
+// The dataset is private (it holds leads and admin accounts), so reads need a
+// token. Server-only env var: undefined in the browser, where only urlFor()
+// runs. `perspective: "published"` keeps an authenticated client from
+// returning drafts, matching what the unauthenticated client used to see.
 export const client = createClient({
     projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
     dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || "production",
     useCdn: false,
     apiVersion: "2026-07-14",
+    token: process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN,
+    perspective: "published",
 });
 
 export const writeClient = createClient({

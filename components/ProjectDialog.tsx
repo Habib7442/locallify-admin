@@ -135,7 +135,7 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
             targetAreas: [],
             napConsistency: "",
             results: [],
-            testimonial: { clientName: "", company: "", designation: "", photo: "", rating: 5, testimonial: "" },
+            testimonial: { clientName: "", company: "", designation: "", photo: "", rating: 5, testimonial: "", sourceUrl: "" },
             faq: [],
             cta: { title: "", description: "", buttonText: "", buttonLink: "" }
         }
@@ -229,7 +229,8 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                     designation: project.testimonial?.designation || "",
                     photo: project.testimonial?.photo || "",
                     rating: project.testimonial?.rating ?? 5,
-                    testimonial: project.testimonial?.testimonial || ""
+                    testimonial: project.testimonial?.testimonial || "",
+                    sourceUrl: project.testimonial?.sourceUrl || ""
                 },
                 faq: project.faq || [],
                 cta: {
@@ -311,7 +312,7 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                 targetAreas: [],
                 napConsistency: "",
                 results: [],
-                testimonial: { clientName: "", company: "", designation: "", photo: "", rating: 5, testimonial: "" },
+                testimonial: { clientName: "", company: "", designation: "", photo: "", rating: 5, testimonial: "", sourceUrl: "" },
                 faq: [],
                 cta: { title: "", description: "", buttonText: "", buttonLink: "" }
             });
@@ -923,6 +924,11 @@ export default function ProjectDialog({ open, onOpenChange, project }: ProjectDi
                                     <div className="space-y-1">
                                         <Label className="text-[9px] font-bold text-zinc-400">Review Quote</Label>
                                         <Textarea {...register("testimonial.testimonial")} placeholder="Client's testimonial quote text..." className="h-20 bg-white border-zinc-200 rounded-xl font-bold p-3" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-[9px] font-bold text-zinc-400">Source URL (optional)</Label>
+                                        <Input type="url" {...register("testimonial.sourceUrl")} placeholder="https://g.co/… link to the public Google review" className="h-10 bg-white" />
+                                        <p className="text-[9px] text-zinc-400">The website shows a &quot;Verified&quot; badge only when this links to the client&apos;s public review.</p>
                                     </div>
                                 </div>
 

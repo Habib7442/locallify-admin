@@ -8,10 +8,11 @@ import {
   encryptSession, 
   getLoggedInUser, 
   hashPassword, 
+  needsRehash,
   verifyPassword 
 } from "./sanity";
 import { serverReviewService, serverProjectService, serverBlogService } from "./services";
-import { Project, Blog } from "@/lib/types";
+import { Project, Blog, LeadStatus } from "@/lib/types";
 
 export async function getCurrentUserAction() {
   return await getLoggedInUser();
@@ -46,6 +47,11 @@ export async function loginAction(formData: FormData) {
       return { success: false, error: "Invalid email or password" };
     }
 
+    // Upgrade legacy 1,000-iteration hashes now that we have the plaintext.
+    if (needsRehash(user.passwordHash)) {
+      await writeClient.patch(user._id).set({ passwordHash: hashPassword(password) }).commit();
+    }
+
     // Encrypt JWT session
     const sessionToken = await encryptSession({
       userId: user._id,
@@ -71,9 +77,20 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function signupAction(formData: FormData) {
+  // Open sign-up would let anyone who finds this URL create an account with
+  // full edit/delete access to the live site's content. Closed by default;
+  // set ALLOW_SIGNUP=true temporarily to add a new admin, then remove it.
+  if (process.env.ALLOW_SIGNUP !== "true") {
+    return { success: false, error: "Sign-up is disabled. Ask an existing admin for access." };
+  }
+
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const name = formData.get("name") as string;
+
+  if (!password || password.length < 12) {
+    return { success: false, error: "Password must be at least 12 characters" };
+  }
 
   try {
     // Check if user already exists
@@ -162,6 +179,58 @@ export async function toggleReviewAction(reviewId: string, currentStatus: boolea
   } catch (error: any) {
     console.error("Toggle review error:", error);
     return { success: false, error: error.message || "Failed to update review status" };
+  }
+}
+
+export async function updateReviewSourceAction(reviewId: string, sourceUrl: string) {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const trimmed = sourceUrl.trim();
+    if (trimmed && !/^https:\/\/\S+$/.test(trimmed)) {
+      throw new Error("Source URL must start with https://");
+    }
+
+    const patch = writeClient.patch(reviewId);
+    await (trimmed ? patch.set({ sourceUrl: trimmed }) : patch.unset(["sourceUrl"])).commit();
+
+    revalidatePath("/reviews");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Update review source error:", error);
+    return { success: false, error: error.message || "Failed to update source URL" };
+  }
+}
+
+export async function updateLeadStatusAction(leadId: string, status: LeadStatus) {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+    if (!["new", "contacted", "archived"].includes(status)) throw new Error("Invalid status");
+
+    await writeClient.patch(leadId).set({ status }).commit();
+
+    revalidatePath("/leads");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Update lead status error:", error);
+    return { success: false, error: error.message || "Failed to update lead" };
+  }
+}
+
+export async function deleteLeadAction(leadId: string) {
+  try {
+    const user = await getLoggedInUser();
+    if (!user) throw new Error("Unauthorized");
+
+    await writeClient.delete(leadId);
+
+    revalidatePath("/leads");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Delete lead error:", error);
+    return { success: false, error: error.message || "Failed to delete lead" };
   }
 }
 
